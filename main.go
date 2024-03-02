@@ -5,7 +5,6 @@ import (
 	v1 "adams549659584/go-proxy-bingai/api/v1"
 	"adams549659584/go-proxy-bingai/common"
 	"adams549659584/go-proxy-bingai/web"
-	"log"
 	"net/http"
 	"time"
 )
@@ -32,24 +31,24 @@ func main() {
 	http.HandleFunc("/sydney/", api.Middleware(api.Sydney))
 
 	if common.IS_DEBUG_MODE {
-		http.HandleFunc("/web/", web.DebugWebHandler)
+		http.HandleFunc("/web/", api.Middleware(web.DebugWebHandler))
 	} else {
-		http.HandleFunc("/web/", api.WebStatic)
+		http.HandleFunc("/web/", api.Middleware(api.WebStatic))
 	}
 
-	http.HandleFunc("/", api.Index)
+	http.HandleFunc("/", api.Middleware(api.Index))
 
 	addr := ":" + common.PORT
 	if common.LOCAL_MODE {
 		addr = "127.0.0.1:" + common.PORT
 	}
 
-	log.Println("Starting BingAI Proxy At " + addr)
+	common.Logger.Info("Starting BingAI Proxy At " + addr)
 
 	srv := &http.Server{
 		Addr:         addr,
 		WriteTimeout: 5 * time.Minute,
 		ReadTimeout:  15 * time.Second,
 	}
-	log.Fatal(srv.ListenAndServe())
+	common.Logger.Fatal(srv.ListenAndServe())
 }
